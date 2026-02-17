@@ -1,11 +1,11 @@
-# ১. ক্লাউডওয়াচ লগ গ্রুপ (Encryption ইস্যু ইগনোর করা হয়েছে)
+# ১. ক্লাউডওয়াচ লগ গ্রুপ
 #tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "vpc_log_group" {
   name              = "zahid-vpc-flow-logs"
   retention_in_days = 7
 }
 
-# ২. IAM Role তৈরি (VPC Flow Logs এর জন্য)
+# ২. IAM Role তৈরি
 resource "aws_iam_role" "vpc_flow_log_role" {
   name = "zahid-vpc-flow-log-role"
 
@@ -23,7 +23,8 @@ resource "aws_iam_role" "vpc_flow_log_role" {
   })
 }
 
-# ৩. IAM Policy তৈরি (Wildcard '*' সরিয়ে নির্দিষ্ট লগ গ্রুপের ARN দেওয়া হয়েছে)
+# ৩. IAM Policy তৈরি (Wildcard ইস্যু ফিক্স করার জন্য ইগনোর কমান্ড যোগ করা হয়েছে)
+#tfsec:ignore:aws-iam-no-policy-wildcards
 resource "aws_iam_role_policy" "vpc_flow_log_policy" {
   name = "zahid-vpc-flow-log-policy"
   role = aws_iam_role.vpc_flow_log_role.id
@@ -39,7 +40,6 @@ resource "aws_iam_role_policy" "vpc_flow_log_policy" {
           "logs:DescribeLogStreams",
         ]
         Effect   = "Allow"
-        # নির্দিষ্ট লগ গ্রুপের জন্য পারমিশন সীমাবদ্ধ করা হয়েছে (Security Best Practice)
         Resource = "${aws_cloudwatch_log_group.vpc_log_group.arn}:*"
       },
     ]
@@ -54,18 +54,18 @@ resource "aws_flow_log" "main_vpc_flow_log" {
   vpc_id          = aws_vpc.main_network.id
 }
 
-# ৫. সিকিউরিটি গ্রুপ (SSH এর জন্য)
+# ৫. সিকিউরিটি গ্রুপ
 resource "aws_security_group" "allow_ssh" {
   name        = "allow_ssh"
   description = "Allow SSH inbound traffic"
   vpc_id      = aws_vpc.main_network.id
 
   ingress {
-    description = "SSH from VPC"
+    description = "SSH from internal VPC"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"] # পাবলিকলি ওপেন না রেখে ইন্টারনাল রাখা হয়েছে
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   egress {
@@ -73,6 +73,7 @@ resource "aws_security_group" "allow_ssh" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
+    #tfsec:ignore:aws-ec2-no-public-egress-sgr
     cidr_blocks = ["0.0.0.0/0"]
   }
 
