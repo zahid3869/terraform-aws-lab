@@ -1,5 +1,7 @@
-# এই অংশটুকু vpc.tf থেকে মুছে ফেলো
-resource "aws_flow_log" "main_vpc_flow_log" {
-  ...
-  ...
+resource "aws_vpc" "main_network" {
+  cidr_block = var.vpc_cidr
+
+  tags = {
+    Name = var.vpc_name
+  }
 }
