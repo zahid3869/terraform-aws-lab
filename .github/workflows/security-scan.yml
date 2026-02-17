@@ -1,21 +1,32 @@
-name: Terraform Security Scan
+name: Terraform Security and Deploy
 
 on:
   push:
-    branches: [ "main" ] # যখনই তুমি main ব্রাঞ্চে কোড পুশ করবে
-  pull_request:
     branches: [ "main" ]
 
 jobs:
-  tfsec_scan:
-    name: Run tfsec scan
-    runs-on: ubuntu-latest # গিটহাবের একটি ভার্চুয়াল কম্পিউটারে এটি চলবে
-
+  terraform:
+    name: Run Scan and Deploy
+    runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3 # তোমার কোড গিটহাব থেকে এই কম্পিউটারে আনবে
+        uses: actions/checkout@v3
 
       - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0 # অটোমেটিক tfsec রান করবে
-        with:
-          working_directory: .
+        uses: aquasecurity/tfsec-action@v1.0.0
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: terraform init
+
+      - name: Terraform Apply
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: terraform apply -auto-approve
