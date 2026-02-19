@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # এটি দিলে তুমি ম্যানুয়ালিও রান করতে পারবে
+  workflow_dispatch:
 
 jobs:
   terraform:
@@ -22,7 +22,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4 # আমি ভার্সন আপডেট করে দিয়েছি
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
